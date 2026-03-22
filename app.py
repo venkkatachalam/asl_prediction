@@ -9,12 +9,12 @@ import numpy as np
 from PIL import Image
 import io
 import os
-import tflite_runtime.interpreter as tflite
+import tensorflow as tf
 
 app = Flask(__name__) # __Name__ = __Main__ ---------> app ------------> The locality of my app /templates /static
 
 print("Load model")
-interpreter = tflite.Interpreter(model_path='ASL.tflite')
+interpreter = tf.lite.Interpreter(model_path='ASL.tflite')
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
