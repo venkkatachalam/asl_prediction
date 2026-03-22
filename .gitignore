@@ -1,0 +1,5 @@
+venv/
+train/
+uploads/
+__pycache__/
+*.pyc
