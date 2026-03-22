@@ -3,3 +3,5 @@ train/
 uploads/
 __pycache__/
 *.pyc
+convert_model.py
+ASL.h5

@@ -161,8 +161,9 @@
                         document.getElementById('confidence').textContent = 'Confidence ' + (data.confidence * 100).toFixed(1) + '%';
 
                     } else {
-                        document.getElementById('result').textContent = 'No Result';
-                        document.getElementById('confidence').textContent = 'Confidence: Server Error';
+                        var errorData = JSON.parse(xhr.responseText);
+                        document.getElementById('result').textContent = 'Error ' + xhr.status;
+                        document.getElementById('confidence').textContent = errorData.error || 'Unknown server error';
                     }
                 };
 

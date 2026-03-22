@@ -9,16 +9,18 @@ import numpy as np
 from PIL import Image
 import io
 import os
-
-import keras
+import tflite_runtime.interpreter as tflite
 
 app = Flask(__name__) # __Name__ = __Main__ ---------> app ------------> The locality of my app /templates /static
 
 print("Load model")
-model = keras.models.load_model('ASL.h5')
+interpreter = tflite.Interpreter(model_path='ASL.tflite')
+interpreter.allocate_tensors()
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 print("Loaded model")
-input_shape = model.input_shape
-IMG_SIZE = input_shape[1]
+
+IMG_SIZE = input_details[0]['shape'][1]
 # Load the model
 
 classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -40,9 +42,11 @@ def predict():
         img = img.resize((IMG_SIZE, IMG_SIZE))
         img = img.convert('RGB')
         img_array = np.array(img)/255.0
-        img_array = np.expand_dims(img_array, axis=0) # Batch * Height * width * channels(RGB)
+        img_array = np.expand_dims(img_array, axis=0).astype(np.float32) # Batch * Height * width * channels(RGB)
 
-        prediction = model.predict(img_array, verbose=0)
+        interpreter.set_tensor(input_details[0]['index'], img_array)
+        interpreter.invoke()
+        prediction = interpreter.get_tensor(output_details[0]['index'])
         predicted_class = classes[np.argmax(prediction)] #[0.01, 0.02....0.01] ---> 1 ()
         confidence = float(np.max(prediction))
 
