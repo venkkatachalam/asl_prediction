@@ -16,7 +16,7 @@ app = Flask(__name__) # __Name__ = __Main__ ---------> app ------------> The loc
 
 print("Load model")
 model = keras.models.load_model('ASL.h5')
-
+print("Loaded model")
 input_shape = model.input_shape
 IMG_SIZE = input_shape[1]
 # Load the model
@@ -30,29 +30,34 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No Image Provided'}), 400 # BAD REQ
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No Image Provided'}), 400 # BAD REQ
 
-    # Process the image
-    file = request.files['image']
-    img = Image.open(io.BytesIO(file.read()))
-    img = img.resize((IMG_SIZE, IMG_SIZE))
-    img = img.convert('RGB')
-    img_array = np.array(img)/255.0
-    img_array = np.expand_dims(img_array, axis=0) # Batch * Height * width * channels(RGB)
+        # Process the image
+        file = request.files['image']
+        img = Image.open(io.BytesIO(file.read()))
+        img = img.resize((IMG_SIZE, IMG_SIZE))
+        img = img.convert('RGB')
+        img_array = np.array(img)/255.0
+        img_array = np.expand_dims(img_array, axis=0) # Batch * Height * width * channels(RGB)
 
-    prediction = model.predict(img_array, verbose=0)
-    predicted_class = classes[np.argmax(prediction)] #[0.01, 0.02....0.01] ---> 1 ()
-    confidence = float(np.max(prediction))
+        prediction = model.predict(img_array, verbose=0)
+        predicted_class = classes[np.argmax(prediction)] #[0.01, 0.02....0.01] ---> 1 ()
+        confidence = float(np.max(prediction))
 
-    # Predict
+        # Predict
 
-    return jsonify({
-        'prediction': predicted_class,
-        'confidence': confidence
-    })
+        return jsonify({
+            'prediction': predicted_class,
+            'confidence': confidence
+        })
+    except Exception as e:
+        print(f"Error during prediction: {e}")
+        return jsonify({'error': str(e)}), 500
 ## Load the model
 ## Help with Prediction
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
